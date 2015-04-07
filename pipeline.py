@@ -57,7 +57,7 @@ if not WGET_LUA:
 #
 # Update this each time you make a non-cosmetic change.
 # It will be added to the WARC files and reported to the tracker.
-VERSION = "20150406.02"
+VERSION = "20150407.01"
 USER_AGENT = 'ArchiveTeam'
 TRACKER_ID = 'layervault'
 TRACKER_HOST = 'tracker.archiveteam.org'
@@ -173,12 +173,12 @@ class WgetArgs(object):
             "--truncate-output",
             "-e", "robots=off",
             "--rotate-dns",
-#            "--recursive", "--level=inf",
+            "--recursive", "--level=inf",
             "--no-parent",
-#            "--page-requisites",
+            "--page-requisites",
             "--timeout", "30",
             "--tries", "inf",
-            "--domains", "layervault.com",
+            "--domains", "layervault.com,layervau.lt",
             "--span-hosts",
             "--waitretry", "30",
             "--warc-file", ItemInterpolation("%(item_dir)s/%(warc_file_base)s"),
@@ -194,10 +194,16 @@ class WgetArgs(object):
         item['item_type'] = item_type
         item['item_value'] = item_value
         
-        assert item_type in ('project')
+        assert item_type in ('project', 'file')
+        
+        a = string.digits
         
         if item_type == 'project':
-            wget_args.append('https://layervault.com/api/v2/projects/{0}'.format(item_value))
+            for url in ['https://layervault.com/api/v2/projects/{0}{1}{2}'.format(item_value, sufa, sufb) for sufa in a for sufb in a]:
+                wget_args.append(url)
+        elif item_type == 'file':
+            for url in ['https://layervault.com/api/v2/files/{0}{1}{2}'.format(item_value, sufa, sufb) for sufa in a for sufb in a]:
+                wget_args.append(url)
         else:
             raise Exception('Unknown item')
         
@@ -232,7 +238,7 @@ pipeline = Pipeline(
     WgetDownload(
         WgetArgs(),
         max_tries=2,
-        accept_on_exit_code=[0, 8],
+        accept_on_exit_code=[0, 4, 8],
         env={
             "item_dir": ItemValue("item_dir"),
             "item_value": ItemValue("item_value"),
