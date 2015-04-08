@@ -185,6 +185,9 @@ wget.callbacks.httploop_result = function(url, err, http_stat)
       io.stdout:flush()
       tries = 0
       return wget.actions.EXIT
+    elseif tries >= 2 and status_code == 500 then
+      io.stdout:write("\nMoving on...\n")
+      io.stdout:flush()
     elseif tries >= 15 then
       io.stdout:write("\nI give up...\n")
       io.stdout:flush()
